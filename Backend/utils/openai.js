@@ -1,6 +1,7 @@
 import "dotenv/config";
 
-const getOpenAIAPIResponse = async(message) => {
+// messages: array of { role: "user" | "assistant", content: string }
+const getOpenAIAPIResponse = async (messages) => {
     const options = {
         method: "POST",
         headers: {
@@ -9,20 +10,24 @@ const getOpenAIAPIResponse = async(message) => {
         },
         body: JSON.stringify({
             model: "gpt-4o-mini",
-            messages: [{
-                role: "user",
-                content: message
-            }]
+            messages
         })
     };
 
     try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", options);
         const data = await response.json();
-        return data.choices[0].message.content; //reply
-    } catch(err) {
+
+        if (!response.ok || !data.choices?.length) {
+            console.log("OpenAI API error:", data.error?.message || response.status);
+            return null;
+        }
+
+        return data.choices[0].message.content; // reply
+    } catch (err) {
         console.log(err);
+        return null;
     }
-}
+};
 
 export default getOpenAIAPIResponse;
